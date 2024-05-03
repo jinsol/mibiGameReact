@@ -47,7 +47,9 @@ const Header = () => {
         <li>
           <Link to="/bullsAndCows">숫자야구</Link>
         </li>
-        <li>네번째게임</li>
+        <li>
+          <Link to="/responseCheck">반응속도</Link>
+        </li>
         <li>다섯번째게임</li>
         <li>여섯번째게임</li>
         <li>일곱번째게임</li>
