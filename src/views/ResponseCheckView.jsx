@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
 
 const ResponseCheckViewBlock = styled.section`
@@ -8,8 +8,9 @@ const ResponseCheckViewBlock = styled.section`
     text-align: center;
     user-select: none;
     color: white;
+    font-size: 1.2em;
   }
-  #screen.wating {
+  #screen.waiting {
     background-color: blue;
   }
   #screen.ready {
@@ -21,46 +22,52 @@ const ResponseCheckViewBlock = styled.section`
 `;
 
 const ResponseCheckView = () => {
-  const [state, setState] = useState({
-    state: "wating",
-    message: "클릭해서 시작하세요",
-    result: [],
-  });
+  const [state, setState] = useState("waiting");
+  const [message, setMessage] = useState("클릭해서 시작하세요.");
+  const [result, setResult] = useState([]);
+  const timeOut = useRef(null);
+  const startTime = useRef();
+  const endTime = useRef();
 
-  timeout;
   const onClickScreen = () => {
-    if (state.state == "wating") {
-      setState({ state: "ready", message: "준비하세요" });
-
-      timeout = setTimeout(() => {
-        setState({ state: "now", message: "클릭하세요" });
+    if (state == "waiting") {
+      setState("ready");
+      setMessage("초록색이 되면 클릭하세요");
+      timeOut.current = setTimeout(() => {
+        setState("now");
+        setMessage("지금 클릭");
+        startTime.current = new Date();
       }, Math.floor(Math.random() * 1000) + 2000);
-    } else if (state.state === "ready") {
-      clearTimeout(timeout);
-      setState({
-        state: "waiting",
-        message: "너무 빨리 클릭했습니다",
-      });
-    } else if (state.state === "now") {
-      setState({
-        state: "waiting",
-        message: "클릭해서 시작하세요",
-        result: [],
+    } else if (state == "ready") {
+      clearTimeout(timeOut.current);
+      setState("waiting");
+      setMessage("너무 빨리 클릭했습니다. 초록색일 때 클릭하세요.");
+    } else if (state == "now") {
+      endTime.current = new Date();
+      setState("waiting");
+      setMessage("클릭해서 시작하세요");
+      setResult((prevResult) => {
+        return [...prevResult, endTime.current - startTime.current];
       });
     }
   };
+
+  const onReset = () => setResult([]);
+  const renderAverage = () => {
+    return result.length === 0 ? null : (
+      <>
+        <div>평균 시간: {result.reduce((a, c) => a + c) / result.length}ms</div>
+        <button onClick={onReset}>리셋</button>
+      </>
+    );
+  };
+
   return (
     <ResponseCheckViewBlock>
-      <div id="screen" className={state.state} onClick={onClickScreen}>
-        {state.message}
+      <div id="screen" className={state} onClick={onClickScreen}>
+        {message}
       </div>
-      {state.result.length !== 0 ? null : (
-        <div>
-          평균시간 :
-          {state.result.reduce(((a, c) => a + c) / state.result.length)}
-          ms
-        </div>
-      )}
+      {renderAverage()}
     </ResponseCheckViewBlock>
   );
 };
